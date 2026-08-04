@@ -2,15 +2,32 @@
 
 **Deterministic pre-deployment checks for AI agent systems.**
 
+[![ci](https://github.com/arthursilas-ai/agent-preflight/actions/workflows/ci.yml/badge.svg)](https://github.com/arthursilas-ai/agent-preflight/actions/workflows/ci.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
+
+Your agent works in the demo. Will it pass review?
+
+## Install
+
+As an agent skill (works in Claude Code, Cursor, Copilot, Codex, Gemini, Zed and others):
+
 ```bash
 npx skills add arthursilas-ai/agent-preflight
 ```
 
-Or run it directly:
+Or standalone — one file, no install, no account:
 
 ```bash
-python3 scripts/preflight.py examples/failing-refunds-bot.yaml
+curl -O https://raw.githubusercontent.com/arthursilas-ai/agent-preflight/main/scripts/preflight.py
+pip install pyyaml
+
+python3 preflight.py --init          # write a starter spec
+python3 preflight.py agent-spec.yaml # check it
 ```
+
+Exit codes: `0` passed · `1` blocked · `2` spec unreadable. Add `--json` for
+CI, `--strict` to fail on warnings too.
 
 ---
 
@@ -48,24 +65,6 @@ VERDICT: BLOCKED — do not deploy until the above are resolved.
 ```
 
 Every finding carries a fix, not just a complaint.
-
-## Quick start
-
-```bash
-git clone https://github.com/arthursilas-ai/agent-preflight
-cd agent-preflight
-pip install pyyaml
-
-cp assets/agent-spec.yaml my-agent.yaml
-# fill it in honestly — the fields you cannot answer are the finding
-python3 scripts/preflight.py my-agent.yaml
-```
-
-In CI:
-
-```bash
-python3 scripts/preflight.py my-agent.yaml --json --strict
-```
 
 ## The check areas
 
