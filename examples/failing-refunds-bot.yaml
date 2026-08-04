@@ -1,0 +1,82 @@
+# A refunds agent that demos beautifully and must not ship.
+# Every problem here is one we have seen in a real system.
+# Expect: VERDICT: BLOCKED
+
+system_id: "refunds-copilot-demo"
+customer_job: "Handle refund requests automatically"
+acceptance_metric: ""              # nobody agreed what success means
+
+shape: "multi_agent"
+why_this_shape: ""                 # reached for the most complex shape by default
+
+tenancy:
+  multi_tenant: true
+  rls_enabled: false               # the classic
+  tenant_id_propagated: false
+  cross_tenant_tests: []
+
+credentials:
+  privileged_keys_server_only: false   # service key shipped to the browser
+
+untrusted_input:
+  consumes_external_content: true      # reads customer emails
+  treated_as_data_not_instructions: false
+  consequential_actions_gated: false   # an email can trigger a refund
+
+agents:
+  - name: "refund_agent"
+    purpose: "Decide and issue refunds"
+    context_boundary: ""
+    model_policy: "whatever is fastest"
+    permitted_tools: ["issue_refund", "lookup_order", "escalate"]   # escalate is undeclared
+    output_schema: ""
+    step_limit: null                # unbounded loop
+    cost_budget: ""                 # unbounded spend
+    stop_conditions: []
+    escalation_conditions: []
+
+tools:
+  - name: "lookup_order"
+    input_schema: "{order_id}"
+    output_schema: "{order}"
+    auth_scope: "read:orders"
+    tenant_context: "tenant_id"
+    side_effect: "read"
+    timeout_s: 10
+    idempotency: ""
+    approval_required: false
+
+  - name: "issue_refund"
+    input_schema: "{order_id, amount}"
+    output_schema: "{ok}"
+    auth_scope: ""                  # no scope declared
+    tenant_context: ""
+    side_effect: "irreversible"
+    timeout_s: null
+    idempotency: ""                 # money moved twice on retry
+    approval_required: false        # no human in the loop
+
+evaluation:
+  cases: ["the three tickets we tried in the demo"]
+  adversarial_cases: []
+  run_on_real_inputs: false
+
+schedule:
+  scheduled: true
+  liveness_alert: false             # if it stops running, nobody finds out
+
+observability:
+  logging: ""
+  tracing: ""
+  cost_monitoring: ""
+  alerting: ""
+
+billing:
+  uses_payments: true
+  webhook_signature_verified: false
+  event_ids_stored_for_idempotency: false
+  fulfilment_verified_end_to_end: false
+
+rollback:
+  target: ""
+  verified: false

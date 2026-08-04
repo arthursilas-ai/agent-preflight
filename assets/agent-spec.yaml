@@ -1,0 +1,78 @@
+# agent-preflight specification
+# Run:  python3 scripts/preflight.py assets/agent-spec.yaml
+#
+# Fill this in honestly. The value is in the fields you cannot yet answer —
+# those are the gaps a reviewer will find anyway, only later and in public.
+
+system_id: ""
+customer_job: ""                  # the job to be done, in the user's words
+acceptance_metric: ""              # the number both sides agree means success
+
+# deterministic | single_model_step | single_agent | durable_workflow | multi_agent
+shape: "single_agent"
+why_this_shape: ""                 # required in spirit for the two most complex shapes
+
+tenancy:
+  multi_tenant: false
+  rls_enabled: false               # must be true when multi_tenant
+  tenant_id_propagated: false
+  cross_tenant_tests: []
+
+credentials:
+  privileged_keys_server_only: true
+
+untrusted_input:
+  consumes_external_content: false # web pages, documents, emails, uploads
+  treated_as_data_not_instructions: false
+  consequential_actions_gated: false
+
+agents:
+  - name: ""
+    purpose: ""
+    context_boundary: ""           # what this agent may see
+    model_policy: ""
+    permitted_tools: []            # must all exist in tools below
+    output_schema: ""
+    step_limit: null               # required
+    cost_budget: ""                # required
+    latency_budget: ""
+    stop_conditions: []            # required
+    escalation_conditions: []      # when a human takes over
+
+tools:
+  - name: ""
+    input_schema: ""
+    output_schema: ""
+    auth_scope: ""                 # minimum scope needed
+    tenant_context: ""
+    side_effect: "read"            # read | write | irreversible
+    timeout_s: null
+    retry_policy: ""
+    idempotency: ""                # required for write and irreversible
+    approval_required: false       # required true for irreversible
+    audit_fields: []
+
+evaluation:
+  cases: []                        # representative real inputs
+  adversarial_cases: []            # injection, malformed input, cross-tenant probes
+  run_on_real_inputs: false
+
+schedule:
+  scheduled: false                 # does this run on a timer?
+  liveness_alert: false            # alert when an expected run does NOT happen
+
+observability:
+  logging: ""
+  tracing: ""
+  cost_monitoring: ""
+  alerting: ""
+
+billing:
+  uses_payments: false
+  webhook_signature_verified: false
+  event_ids_stored_for_idempotency: false
+  fulfilment_verified_end_to_end: false
+
+rollback:
+  target: ""                       # the exact version or state to revert to
+  verified: false

@@ -1,0 +1,18 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pyyaml
+      - name: Passing example must pass
+        run: python3 scripts/preflight.py examples/passing-support-triage.yaml
+      - name: Failing example must be blocked
+        run: |
+          if python3 scripts/preflight.py examples/failing-refunds-bot.yaml; then
+            echo "expected the failing example to be blocked"; exit 1
+          fi
