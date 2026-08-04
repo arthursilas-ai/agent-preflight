@@ -2,6 +2,7 @@
 """
 agent-preflight — deterministic pre-deployment checks for AI agent systems.
 
+    python3 preflight.py --init                       # write a starter spec
     python3 preflight.py path/to/agent-spec.yaml [--json] [--strict]
 
 Exit codes:
@@ -316,10 +317,120 @@ def run(spec: dict) -> Report:
 # CLI
 # --------------------------------------------------------------------------
 
+STARTER_SPEC = """# agent-preflight spec. Fill this in honestly.
+# The fields you cannot answer are the finding — those are the gaps a
+# reviewer will find anyway, only later and in public.
+#
+#   python3 preflight.py agent-spec.yaml
+
+system_id: ""
+customer_job: ""                 # the job to be done, in the user's words
+acceptance_metric: ""             # the number both sides agree means success
+
+# deterministic | single_model_step | single_agent | durable_workflow | multi_agent
+shape: "single_agent"
+why_this_shape: ""
+
+tenancy:
+  multi_tenant: false
+  rls_enabled: false
+  tenant_id_propagated: false
+  cross_tenant_tests: []
+
+credentials:
+  privileged_keys_server_only: true
+
+untrusted_input:
+  consumes_external_content: false
+  treated_as_data_not_instructions: false
+  consequential_actions_gated: false
+
+agents:
+  - name: ""
+    purpose: ""
+    context_boundary: ""
+    model_policy: ""
+    permitted_tools: []
+    output_schema: ""
+    step_limit: null               # required
+    cost_budget: ""                # required
+    stop_conditions: []            # required
+    escalation_conditions: []
+
+tools:
+  - name: ""
+    input_schema: ""
+    output_schema: ""
+    auth_scope: ""
+    tenant_context: ""
+    side_effect: "read"            # read | write | irreversible
+    timeout_s: null
+    retry_policy: ""
+    idempotency: ""                # required for write and irreversible
+    approval_required: false       # required true for irreversible
+    audit_fields: []
+
+evaluation:
+  cases: []
+  adversarial_cases: []
+  run_on_real_inputs: false
+
+schedule:
+  scheduled: false
+  liveness_alert: false            # alert when an expected run does NOT happen
+
+observability:
+  logging: ""
+  tracing: ""
+  cost_monitoring: ""
+  alerting: ""
+
+billing:
+  uses_payments: false
+  webhook_signature_verified: false
+  event_ids_stored_for_idempotency: false
+  fulfilment_verified_end_to_end: false
+
+rollback:
+  target: ""
+  verified: false
+
+exposure:
+  publicly_reachable: false
+
+data_handling:
+  processes_personal_data: false
+  retention_period: ""
+  used_for_training: false
+  prompts_logged: false
+  log_redaction: false
+
+resilience:
+  model_fallback: ""
+  run_timeout_s: null
+  rate_limited: false
+  concurrency_limit: null
+"""
+
+
+def write_starter(path: Path) -> int:
+    if path.exists():
+        print(f"{path} already exists — refusing to overwrite.")
+        return 1
+    path.write_text(STARTER_SPEC)
+    print(f"Wrote {path}")
+    print("Fill it in, then run:")
+    print(f"  python3 {Path(__file__).name} {path}")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv if not a.startswith("--")]
     as_json = "--json" in argv
     strict = "--strict" in argv
+
+    if "--init" in argv:
+        return write_starter(Path(args[0]) if args else Path("agent-spec.yaml"))
 
     if len(args) != 1:
         print(__doc__)
