@@ -3,6 +3,7 @@
 agent-preflight — deterministic pre-deployment checks for AI agent systems.
 
     python3 preflight.py --init                       # write a starter spec
+    python3 preflight.py --explain <check-id>         # why a check exists
     python3 preflight.py path/to/agent-spec.yaml [--json] [--strict]
 
 Exit codes:
@@ -424,10 +425,88 @@ def write_starter(path: Path) -> int:
     return 0
 
 
+# Why each check exists. Shown by --explain, so the reasoning is available
+# without leaving the terminal or reading the repo.
+RATIONALE = {
+    "purpose.acceptance":
+        "Reviewers reject what they cannot measure, and teams ship things nobody agrees "
+        "worked. Name the number both sides accept before you build.",
+    "tenancy.rls":
+        "Cross-tenant leakage ends contracts rather than causing a bad week. Row-level "
+        "authorisation is the control; a passing integration test is not.",
+    "tenancy.tests":
+        "Isolation you have not attacked is isolation you are guessing at. Write the probe "
+        "that tries to read another tenant's row.",
+    "credentials.exposure":
+        "A privileged key that reaches a client is a breach with a delay. It will be found.",
+    "injection.gating":
+        "The danger is not the model being fooled — it is a consequential action being "
+        "reachable from fooled output. Gate the action, not the prompt.",
+    "tool.idempotency":
+        "Retries are inevitable: timeouts, at-least-once delivery, double clicks. Without an "
+        "idempotency key the write eventually runs twice. When it moves money, it moves it twice.",
+    "tool.approval":
+        "Models handle ambiguity. Deterministic services handle authority, money, and anything "
+        "that cannot be undone. Irreversible actions need a human in the path.",
+    "agent.step_limit":
+        "An agent without a step limit is an unbounded loop. It stops when something else breaks, "
+        "usually a bill or a rate limit.",
+    "agent.cost_budget":
+        "Spend is the failure mode nobody instruments until the invoice arrives.",
+    "eval.adversarial":
+        "A suite with no failing-by-design cases proves nothing about robustness. Include "
+        "injection, malformed input, and cross-tenant probes.",
+    "ops.liveness":
+        "The check that exists because it bit us. Scheduled jobs were declared and registered "
+        "correctly, then never fired for two days. Nothing alerted, because nothing errored — "
+        "silence and success were indistinguishable. Alert on absence, not just on errors.",
+    "ops.rollback":
+        "An untested rollback is a hope. Name the version and prove you can reach it.",
+    "data.log_redaction":
+        "Prompts contain whatever the user pasted — keys, customer records, personal data. "
+        "Logging them unredacted turns your observability stack into the breach.",
+    "data.training":
+        "Every procurement review asks whether customer data trains a model. Silence is not "
+        "neutrality; it is a failed review. Answer explicitly, including 'no'.",
+    "resilience.run_timeout":
+        "Per-tool timeouts do not bound a run. An agent looping between two fast tools can run "
+        "for hours while staying inside its step limit.",
+    "resilience.rate_limit":
+        "A public agent with no rate limit is a metered API someone else controls. The first "
+        "abusive caller drains the model budget.",
+    "billing.fulfilment":
+        "A charge with a flipped status flag and no delivery is the worst outcome available to a "
+        "business. Prove delivery with a real run.",
+}
+
+
+def explain(check_id: str | None) -> int:
+    if not check_id:
+        print("Checks with recorded rationale:\n")
+        for k in sorted(RATIONALE):
+            print(f"  {k}")
+        print("\nRun:  preflight.py --explain <check-id>")
+        return 0
+    text = RATIONALE.get(check_id)
+    if not text:
+        print(f"No rationale recorded for {check_id!r}.")
+        print("Run --explain with no argument to list the ones that have it.")
+        return 1
+    print(f"{check_id}\n")
+    for line in text.split(". "):
+        line = line.strip()
+        if line:
+            print(f"  {line.rstrip('.')}.")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv if not a.startswith("--")]
     as_json = "--json" in argv
     strict = "--strict" in argv
+
+    if "--explain" in argv:
+        return explain(args[0] if args else None)
 
     if "--init" in argv:
         return write_starter(Path(args[0]) if args else Path("agent-spec.yaml"))

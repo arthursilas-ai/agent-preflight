@@ -22,8 +22,9 @@ Or standalone — one file, no install, no account:
 curl -O https://raw.githubusercontent.com/arthursilas-ai/agent-preflight/main/scripts/preflight.py
 pip install pyyaml
 
-python3 preflight.py --init          # write a starter spec
-python3 preflight.py agent-spec.yaml # check it
+python3 preflight.py --init                 # write a starter spec
+python3 preflight.py agent-spec.yaml        # check it
+python3 preflight.py --explain ops.liveness # why a check exists
 ```
 
 Exit codes: `0` passed · `1` blocked · `2` spec unreadable. Add `--json` for

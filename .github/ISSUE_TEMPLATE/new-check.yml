@@ -1,0 +1,31 @@
+name: Propose a check
+description: Suggest a new pre-deployment check
+labels: [new-check]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One rule: a check must encode a failure that **actually happened** —
+        to you, to a team you know, or in a published incident. Speculative
+        checks make the tool noisy.
+  - type: textarea
+    id: incident
+    attributes:
+      label: The failure that actually happened
+      description: What broke, how it was noticed, and what it cost.
+    validations:
+      required: true
+  - type: textarea
+    id: check
+    attributes:
+      label: What the check would look for
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Block or warn
+      description: BLOCK means this should not ship. If a team could reasonably ship anyway with eyes open, it is a WARN.
+      options: [block, warn]
+    validations:
+      required: true

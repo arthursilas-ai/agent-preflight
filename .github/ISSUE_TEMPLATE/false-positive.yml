@@ -1,0 +1,31 @@
+name: False positive
+description: A check fired on something that is actually fine
+labels: [false-positive]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        False positives matter more here than missing checks. A noisy checker
+        gets ignored, and then the real findings get ignored too. Thank you for
+        reporting this.
+  - type: input
+    id: check
+    attributes:
+      label: Which check
+      placeholder: "resilience.run_timeout"
+    validations:
+      required: true
+  - type: textarea
+    id: spec
+    attributes:
+      label: Smallest spec that reproduces it
+      description: Please redact anything sensitive — a spec describes your architecture.
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why the finding is wrong
+    validations:
+      required: true
