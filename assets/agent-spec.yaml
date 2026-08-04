@@ -76,3 +76,19 @@ billing:
 rollback:
   target: ""                       # the exact version or state to revert to
   verified: false
+
+exposure:
+  publicly_reachable: false        # can an unauthenticated caller trigger a run?
+
+data_handling:
+  processes_personal_data: false
+  retention_period: ""             # how long inputs and outputs are kept
+  used_for_training: false         # must be stated explicitly, not left blank
+  prompts_logged: false
+  log_redaction: false             # required true when prompts_logged
+
+resilience:
+  model_fallback: ""               # what happens when the primary provider is down
+  run_timeout_s: null              # bounds the WHOLE run, not just each tool
+  rate_limited: false              # required when publicly_reachable
+  concurrency_limit: null

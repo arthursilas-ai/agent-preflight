@@ -80,3 +80,19 @@ billing:
 rollback:
   target: ""
   verified: false
+
+exposure:
+  publicly_reachable: true         # anyone can trigger a refund run
+
+data_handling:
+  processes_personal_data: true
+  retention_period: ""             # nobody decided
+  used_for_training: null          # nobody asked
+  prompts_logged: true
+  log_redaction: false             # customer details written straight to logs
+
+resilience:
+  model_fallback: ""
+  run_timeout_s: null
+  rate_limited: false
+  concurrency_limit: null

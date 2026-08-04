@@ -91,3 +91,19 @@ billing:
 rollback:
   target: "v2.4.1"
   verified: true
+
+exposure:
+  publicly_reachable: false
+
+data_handling:
+  processes_personal_data: true
+  retention_period: "90 days, then deleted by scheduled job"
+  used_for_training: false
+  prompts_logged: true
+  log_redaction: true
+
+resilience:
+  model_fallback: "smaller model on timeout, then queue for human triage"
+  run_timeout_s: 60
+  rate_limited: true
+  concurrency_limit: 20

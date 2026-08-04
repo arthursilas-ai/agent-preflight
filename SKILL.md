@@ -61,6 +61,8 @@ approval step.
 | **Operations** | No logging, no alerting, no rollback target | Silent failure is the enemy |
 | **Liveness** | Scheduled, but no alert when a run *doesn't* happen | A job that silently never fires looks exactly like a job with nothing to do |
 | **Billing** | Unverified webhooks, no event idempotency, unproven fulfilment | A charge without delivery is the worst outcome available |
+| **Data handling** | Personal data with no retention or training statement; prompts logged unredacted | Logs become the breach; procurement rejects silence |
+| **Resilience** | No run-level timeout; public endpoint with no rate limit | Per-tool timeouts don't bound a run; an abusive caller drains the budget |
 
 Detail and threat model: [references/checks.md](references/checks.md).
 

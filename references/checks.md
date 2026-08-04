@@ -97,6 +97,32 @@ exactly-once. Store event IDs and ignore repeats.
 proven by an actual end-to-end run. A charge with a flipped status flag and
 no delivery is the worst outcome available to a business.
 
+## Data handling
+
+**`data.retention` / `data.training`** — Two questions every procurement review
+asks: how long do you keep it, and does it train anything? Leaving either blank
+is not neutrality, it is a failed review. State them explicitly, including
+"no".
+
+**`data.log_redaction`** — Prompts contain whatever the user pasted, which
+routinely includes API keys, customer records and personal data. Logging them
+unredacted turns your observability stack into the breach. Redact at write
+time, not at read time.
+
+## Resilience
+
+**`resilience.run_timeout`** — Per-tool timeouts do not bound the whole run. An
+agent that loops between two fast tools can run for hours inside its step
+limit. Bound the run itself.
+
+**`resilience.rate_limit`** — A publicly reachable agent with no rate limit is
+a metered API someone else controls. The first abusive caller drains the model
+budget.
+
+**`resilience.fallback` / `resilience.concurrency`** — A single provider outage
+should degrade the system, not stop it. Unbounded parallelism multiplies spend
+and hits provider limits exactly when load is highest.
+
 ## What this does not do
 
 It validates declared design, not running behaviour. It cannot detect a spec

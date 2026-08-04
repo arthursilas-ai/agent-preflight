@@ -241,6 +241,54 @@ def check_billing(spec: dict, r: Report) -> None:
               "not just a status flag flipped in a database.")
 
 
+def check_data_handling(spec: dict, r: Report) -> None:
+    """Where the data goes is a contract question, not an implementation detail."""
+    d = spec.get("data_handling") or {}
+
+    if d.get("processes_personal_data") is True:
+        if d.get("retention_period"):
+            pass
+        else:
+            r.add(BLOCK, "data.retention", "Personal data processed with no stated retention period.",
+                  "State how long inputs and outputs are kept, and what deletes them.")
+        if d.get("used_for_training") is None:
+            r.add(BLOCK, "data.training", "No statement on whether customer data trains a model.",
+                  "Say explicitly yes or no. Silence here fails every procurement review.")
+
+    if d.get("prompts_logged") is True and d.get("log_redaction") is not True:
+        r.add(BLOCK, "data.log_redaction",
+              "Prompts are logged without redaction.",
+              "Prompts carry whatever the user pasted, including secrets and personal data. "
+              "Redact before writing to logs, or logs become the breach.")
+
+    if not d:
+        r.add(WARN, "data.undeclared", "No data_handling section declared.",
+              "State what data is processed, how long it is kept, and whether it trains anything.")
+
+
+def check_resilience(spec: dict, r: Report) -> None:
+    """Agents fail on the boring things: an upstream outage, a runaway loop, an abusive caller."""
+    res = spec.get("resilience") or {}
+
+    if blank(res.get("model_fallback")):
+        r.add(WARN, "resilience.fallback", "No model fallback declared.",
+              "A single provider outage takes the whole system down. Name a fallback or accept the risk explicitly.")
+
+    if res.get("run_timeout_s") in (None, ""):
+        r.add(BLOCK, "resilience.run_timeout", "No overall run timeout.",
+              "Per-tool timeouts do not bound the whole run. A slow loop can still hang for hours.")
+
+    exposed = (spec.get("exposure") or {}).get("publicly_reachable")
+    if exposed is True and res.get("rate_limited") is not True:
+        r.add(BLOCK, "resilience.rate_limit",
+              "Publicly reachable agent with no rate limiting.",
+              "An unauthenticated caller can drain your model budget. Rate limit before exposing it.")
+
+    if res.get("concurrency_limit") in (None, ""):
+        r.add(WARN, "resilience.concurrency", "No concurrency limit declared.",
+              "Unbounded parallel runs multiply spend and hit provider limits at the worst moment.")
+
+
 CHECKS = (
     check_purpose,
     check_shape,
@@ -250,6 +298,8 @@ CHECKS = (
     check_evaluation,
     check_operations,
     check_billing,
+    check_data_handling,
+    check_resilience,
 )
 
 
