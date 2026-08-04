@@ -30,6 +30,8 @@ Start from [assets/agent-spec.yaml](assets/agent-spec.yaml). Worked
 examples: [passing](examples/passing-support-triage.yaml) ·
 [blocked](examples/failing-refunds-bot.yaml).
 
+Worked end-to-end example: [docs/walkthrough.md](docs/walkthrough.md).
+
 ## When to use it
 
 - **Before any production deploy** of an agent — run it, fix blocks, attach the output to the review

@@ -47,6 +47,8 @@ little for the question that actually stalls a pilot:
 no network, no vendor. The same spec always yields the same result, which is
 what makes it reviewable — and what makes it usable in CI.
 
+New here? [**Walkthrough: from blank spec to shippable**](docs/walkthrough.md) — a real pass over a small agent, about ten minutes.
+
 ## What it catches
 
 Run against a realistic refunds agent that demos perfectly:
