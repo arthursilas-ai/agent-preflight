@@ -49,6 +49,8 @@ what makes it reviewable — and what makes it usable in CI.
 
 New here? [**Walkthrough: from blank spec to shippable**](docs/walkthrough.md) — a real pass over a small agent, about ten minutes.
 
+Second example, different failure profile: [**a research agent**](docs/research-agent.md) that reads untrusted content but never touches money.
+
 ## What it catches
 
 Run against a realistic refunds agent that demos perfectly:
