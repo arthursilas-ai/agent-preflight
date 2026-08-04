@@ -16,3 +16,15 @@ jobs:
           if python3 scripts/preflight.py examples/failing-refunds-bot.yaml; then
             echo "expected the failing example to be blocked"; exit 1
           fi
+      - name: Every check id must have a rationale
+        run: |
+          python3 - <<'PY'
+          import re, pathlib, sys
+          src = pathlib.Path("scripts/preflight.py").read_text()
+          ids = set(re.findall(r'r\.add\((?:BLOCK|WARN),\s*"([a-z_]+\.[a-z_]+)"', src))
+          rat = set(re.findall(r'^\s{4}"([a-z_]+\.[a-z_]+)":', src, re.M))
+          missing = sorted(ids - rat)
+          if missing:
+              print("checks with no --explain rationale:", missing); sys.exit(1)
+          print(f"all {len(ids)} check ids documented")
+          PY

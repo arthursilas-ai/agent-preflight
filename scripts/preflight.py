@@ -428,6 +428,79 @@ def write_starter(path: Path) -> int:
 # Why each check exists. Shown by --explain, so the reasoning is available
 # without leaving the terminal or reading the repo.
 RATIONALE = {
+    "agent.context":
+        "An undeclared context boundary means you cannot answer what the agent can see. "
+        "That is the first question any reviewer asks about data access.",
+    "agent.escalation":
+        "Agents meet inputs their designer never imagined. Without escalation "
+        "conditions the fallback is a confident wrong answer instead of a human.",
+    "agent.stop":
+        "Without stop conditions, 'done' is whatever the model decides. Define "
+        "completion and what forces an early exit.",
+    "agent.unknown_tool":
+        "A tool with no declared contract has unknown side effects, unknown scope and "
+        "unknown approval status. You cannot review what is not written down.",
+    "billing.idempotency":
+        "Payment webhooks are at-least-once, never exactly-once. Without stored event "
+        "ids you will fulfil the same order twice.",
+    "billing.signature":
+        "An unverified webhook endpoint accepts forged payment events. Verify against "
+        "the raw body, before any parsing.",
+    "data.retention":
+        "Every enterprise review asks how long you keep the data. 'We had not decided' "
+        "is a failed review, not a neutral answer.",
+    "data.undeclared":
+        "If no one has written down what data this touches, no one has thought about "
+        "it. That conversation happens now or in the security review.",
+    "eval.cases":
+        "A demo that looked right once is not evidence. Evaluate on inputs that "
+        "resemble production, or you are shipping on vibes.",
+    "eval.real_inputs":
+        "Synthetic evaluation hides the messy failures production surfaces first: "
+        "encodings, truncation, missing fields, unexpected languages.",
+    "injection.contract":
+        "Fetched content is data, never instructions. The moment it can issue commands, "
+        "your threat model includes every page your agent reads.",
+    "ops.alerting":
+        "If nobody is watching, the mean time to detection is however long it takes "
+        "someone to complain.",
+    "ops.cost":
+        "Model spend is the failure mode nobody instruments until the invoice arrives. "
+        "A runaway loop is cheap to catch and expensive to miss.",
+    "ops.logging":
+        "Without logs, a failure is discovered by a customer and diagnosed by "
+        "guesswork.",
+    "ops.rollback_verified":
+        "A rollback you have never executed is a hope. Verify it before you need it at "
+        "2am.",
+    "purpose.job":
+        "If you cannot state the job in the user's words, you are describing a "
+        "technology, not a product. Reviewers notice.",
+    "resilience.concurrency":
+        "Unbounded parallel runs multiply spend and hit provider rate limits exactly "
+        "when load is highest.",
+    "resilience.fallback":
+        "A single provider outage should degrade the system, not stop it. Name the "
+        "fallback or accept the dependency explicitly.",
+    "shape.invalid":
+        "An undeclared architecture shape means nobody agreed what this thing is. Pick "
+        "one of the five and say why the simpler one below it does not work.",
+    "shape.unjustified":
+        "Multi-agent and durable workflows carry real operational cost. Reaching for "
+        "them before a single bounded agent has provably failed is the most expensive "
+        "common mistake.",
+    "tenancy.propagation":
+        "Row-level security only works if the tenant identity reaches the query. An "
+        "unpropagated tenant id turns your isolation policy into decoration.",
+    "tool.auth":
+        "An undeclared scope is an unbounded scope. Tools accumulate permissions nobody "
+        "revisits.",
+    "tool.side_effect":
+        "Every other tool rule depends on this classification. Getting it wrong "
+        "silently disables the idempotency and approval checks.",
+    "tool.timeout":
+        "One unbounded call hangs the whole run. The caller cannot distinguish slow "
+        "from dead.",
     "purpose.acceptance":
         "Reviewers reject what they cannot measure, and teams ship things nobody agrees "
         "worked. Name the number both sides accept before you build.",
