@@ -28,3 +28,18 @@ jobs:
               print("checks with no --explain rationale:", missing); sys.exit(1)
           print(f"all {len(ids)} check ids documented")
           PY
+
+      - name: Action must block the failing example
+        uses: ./
+        id: act
+        continue-on-error: true
+        with:
+          spec: examples/failing-refunds-bot.yaml
+          comment-on-pr: "false"
+
+      - name: Assert the action reported a block
+        run: |
+          if [ "${{ steps.act.outputs.passed }}" != "false" ]; then
+            echo "action should have reported passed=false"; exit 1
+          fi
+          echo "action reported ${{ steps.act.outputs.blocking }} blocking findings"

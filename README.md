@@ -71,6 +71,20 @@ VERDICT: BLOCKED — do not deploy until the above are resolved.
 
 Every finding carries a fix, not just a complaint.
 
+
+## Use it in CI
+
+```yaml
+- uses: arthursilas-ai/agent-preflight@main
+  with:
+    spec: agent-spec.yaml
+    strict: "false"
+```
+
+Fails the build on blocking findings, writes them to the job summary, and
+comments on the pull request. Outputs `passed` and `blocking-count` if you
+want to gate a deploy step on them.
+
 ## The check areas
 
 Purpose · Architecture shape · Tenancy isolation · Credential exposure ·

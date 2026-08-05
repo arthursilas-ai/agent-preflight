@@ -1,0 +1,86 @@
+name: 'Agent Preflight'
+description: 'Deterministic pre-deployment checks for AI agent systems. Blocks unsafe designs before they ship.'
+author: 'arthursilas-ai'
+
+branding:
+  icon: 'shield'
+  color: 'gray-dark'
+
+inputs:
+  spec:
+    description: 'Path to your agent spec YAML'
+    required: false
+    default: 'agent-spec.yaml'
+  strict:
+    description: 'Fail on warnings as well as blocking findings'
+    required: false
+    default: 'false'
+  comment-on-pr:
+    description: 'Post findings as a pull request comment'
+    required: false
+    default: 'true'
+
+outputs:
+  passed:
+    description: 'true when no blocking findings were reported'
+    value: ${{ steps.run.outputs.passed }}
+  blocking-count:
+    description: 'Number of blocking findings'
+    value: ${{ steps.run.outputs.blocking }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      shell: bash
+      run: pip install --quiet pyyaml
+
+    - name: Fetch preflight
+      shell: bash
+      run: |
+        curl -fsSL -o "${RUNNER_TEMP}/preflight.py" \
+          https://raw.githubusercontent.com/arthursilas-ai/agent-preflight/main/scripts/preflight.py
+
+    - name: Run preflight
+      id: run
+      shell: bash
+      run: |
+        set +e
+        FLAGS=""
+        if [ "${{ inputs.strict }}" = "true" ]; then FLAGS="--strict"; fi
+
+        python3 "${RUNNER_TEMP}/preflight.py" "${{ inputs.spec }}" $FLAGS \
+          | tee "${RUNNER_TEMP}/preflight.txt"
+        STATUS=${PIPESTATUS[0]}
+
+        python3 "${RUNNER_TEMP}/preflight.py" "${{ inputs.spec }}" --json \
+          > "${RUNNER_TEMP}/preflight.json" 2>/dev/null
+
+        BLOCKING=$(python3 -c "import json;print(len(json.load(open('${RUNNER_TEMP}/preflight.json'))['blocking']))" 2>/dev/null || echo 0)
+        echo "blocking=${BLOCKING}" >> "$GITHUB_OUTPUT"
+        if [ "$STATUS" -eq 0 ]; then echo "passed=true" >> "$GITHUB_OUTPUT"; else echo "passed=false" >> "$GITHUB_OUTPUT"; fi
+
+        {
+          echo "## Agent Preflight"
+          echo ""
+          echo '```'
+          cat "${RUNNER_TEMP}/preflight.txt"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        exit $STATUS
+
+    - name: Comment on pull request
+      if: ${{ always() && inputs.comment-on-pr == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        BODY="$(printf '## Agent Preflight\n\n```\n%s\n```\n' "$(cat "${RUNNER_TEMP}/preflight.txt")")"
+        gh pr comment "${{ github.event.pull_request.number }}" \
+          --repo "${{ github.repository }}" --body "$BODY" || true
