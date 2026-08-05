@@ -291,7 +291,80 @@ def check_resilience(spec: dict, r: Report) -> None:
               "Unbounded parallel runs multiply spend and hit provider limits at the worst moment.")
 
 
+# Known keys, so a typo is reported rather than silently ignored. A field the
+# reader believes they filled in, that the checker never sees, is worse than a
+# missing field: it produces a verdict that looks wrong.
+KNOWN_KEYS = {
+    "": {"system_id", "customer_job", "acceptance_metric", "shape", "why_this_shape",
+         "is_ai_actually_needed", "tenancy", "credentials", "untrusted_input", "agents",
+         "tools", "evaluation", "schedule", "observability", "billing", "rollback",
+         "exposure", "data_handling", "resilience"},
+    "tenancy": {"multi_tenant", "rls_enabled", "tenant_id_propagated", "cross_tenant_tests"},
+    "credentials": {"privileged_keys_server_only", "notes"},
+    "untrusted_input": {"consumes_external_content", "treated_as_data_not_instructions",
+                        "consequential_actions_gated"},
+    "evaluation": {"cases", "adversarial_cases", "run_on_real_inputs"},
+    "schedule": {"scheduled", "liveness_alert"},
+    "observability": {"logging", "tracing", "cost_monitoring", "alerting"},
+    "billing": {"uses_payments", "webhook_signature_verified",
+                "event_ids_stored_for_idempotency", "fulfilment_verified_end_to_end"},
+    "rollback": {"target", "verified"},
+    "exposure": {"publicly_reachable"},
+    "data_handling": {"processes_personal_data", "retention_period", "used_for_training",
+                      "prompts_logged", "log_redaction"},
+    "resilience": {"model_fallback", "run_timeout_s", "rate_limited", "concurrency_limit"},
+}
+
+AGENT_KEYS = {"name", "purpose", "context_boundary", "model_policy", "permitted_tools",
+              "output_schema", "step_limit", "cost_budget", "latency_budget",
+              "stop_conditions", "escalation_conditions"}
+
+TOOL_KEYS = {"name", "input_schema", "output_schema", "auth_scope", "tenant_context",
+             "side_effect", "timeout_s", "retry_policy", "idempotency",
+             "approval_required", "audit_fields"}
+
+
+def _suggest(key: str, known: set) -> str:
+    import difflib
+    m = difflib.get_close_matches(key, sorted(known), n=1, cutoff=0.7)
+    return f" Did you mean {m[0]!r}?" if m else ""
+
+
+def check_schema(spec: dict, r: Report) -> None:
+    for key in spec:
+        if key not in KNOWN_KEYS[""]:
+            r.add(WARN, "schema.unknown_key", f"Unknown top-level key {key!r}.",
+                  f"This key is ignored by every check.{_suggest(key, KNOWN_KEYS[''])}")
+
+    for section, allowed in KNOWN_KEYS.items():
+        if not section:
+            continue
+        block = spec.get(section)
+        if isinstance(block, dict):
+            for key in block:
+                if key not in allowed:
+                    r.add(WARN, "schema.unknown_key", f"Unknown key {section}.{key!r}.",
+                          f"This key is ignored by every check.{_suggest(key, allowed)}")
+
+    for a in spec.get("agents") or []:
+        if isinstance(a, dict):
+            n = a.get("name") or "(unnamed)"
+            for key in a:
+                if key not in AGENT_KEYS:
+                    r.add(WARN, "schema.unknown_key", f"Agent {n}: unknown key {key!r}.",
+                          f"This key is ignored by every check.{_suggest(key, AGENT_KEYS)}")
+
+    for t in spec.get("tools") or []:
+        if isinstance(t, dict):
+            n = t.get("name") or "(unnamed)"
+            for key in t:
+                if key not in TOOL_KEYS:
+                    r.add(WARN, "schema.unknown_key", f"Tool {n}: unknown key {key!r}.",
+                          f"This key is ignored by every check.{_suggest(key, TOOL_KEYS)}")
+
+
 CHECKS = (
+    check_schema,
     check_purpose,
     check_shape,
     check_tenancy,
@@ -428,6 +501,10 @@ def write_starter(path: Path) -> int:
 # Why each check exists. Shown by --explain, so the reasoning is available
 # without leaving the terminal or reading the repo.
 RATIONALE = {
+    "schema.unknown_key":
+        "A key the checker does not recognise is silently ignored. A field you believe "
+        "you filled in, that no check ever reads, is worse than leaving it blank: it "
+        "produces a verdict that looks wrong and erodes trust in the tool.",
     "agent.context":
         "An undeclared context boundary means you cannot answer what the agent can see. "
         "That is the first question any reviewer asks about data access.",

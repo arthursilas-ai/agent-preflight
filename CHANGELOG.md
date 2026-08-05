@@ -6,6 +6,13 @@ All notable changes to this project. Format loosely follows
 ## [Unreleased]
 
 ### Added
+- `schema.unknown_key` — unrecognised keys are now reported with a
+  did-you-mean suggestion. Found by typo-ing `tenant_id_propogated` and
+  watching the checker silently ignore it, then block on the field as though
+  it were never filled in. A field you believe you set, that no check reads,
+  produces a verdict that looks wrong.
+
+### Added
 - `docs/research-agent.md` — a second worked example with a different failure
   profile: an agent that reads untrusted external content but never touches
   money. Injection gating and context boundaries dominate instead of approval
