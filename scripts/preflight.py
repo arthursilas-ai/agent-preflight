@@ -387,6 +387,121 @@ def run(spec: dict) -> Report:
     return r
 
 
+
+# --------------------------------------------------------------------------
+# --scan : detect signals in a real codebase
+# --------------------------------------------------------------------------
+
+# Substrings that suggest a capability. Deliberately conservative: a false
+# "detected" that the reader then confirms is fine; a confident wrong answer
+# is not. Everything found is reported as a signal to verify, never as fact.
+SIGNALS = {
+    "billing.uses_payments": (
+        ["stripe", "paddle.com", "lemonsqueezy", "braintree", "chargebee", "razorpay"],
+        "payment SDK or API referenced",
+    ),
+    "schedule.scheduled": (
+        ["cron", "node-cron", "celery beat", "schedule.every", "@scheduled",
+         "vercel.json\" crons", "pg_cron", "airflow"],
+        "scheduled or cron execution referenced",
+    ),
+    "untrusted_input.consumes_external_content": (
+        ["beautifulsoup", "playwright", "puppeteer", "cheerio", "readability",
+         "requests.get(", "fetch(http", "httpx.get(", "axios.get("],
+        "fetches external content",
+    ),
+    "tenancy.multi_tenant": (
+        ["tenant_id", "organization_id", "org_id", "workspace_id", "row level security"],
+        "tenant or organisation scoping referenced",
+    ),
+    "exposure.publicly_reachable": (
+        ["app.post(", "fastapi", "express()", "flask(", "@app.route",
+         "createserver", "next/server"],
+        "HTTP server or public route defined",
+    ),
+    "data_handling.prompts_logged": (
+        ["logger.info(prompt", "log(prompt", "console.log(prompt", "print(prompt",
+         "logging.info(messages"],
+        "prompt content appears in logging",
+    ),
+}
+
+SCAN_EXTS = {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rb", ".java", ".rs",
+             ".json", ".yaml", ".yml", ".toml"}
+SKIP_DIRS = {"node_modules", ".git", "dist", "build", ".next", "venv", ".venv",
+             "__pycache__", "vendor", "target", ".terraform", "third_party",
+             "backups", "product-backups", "fixtures", "testdata", "examples"}
+
+# Lockfiles list every transitive dependency, so almost any keyword appears in
+# them. Matching there produces confident nonsense — a repo gets flagged as
+# taking payments because something six levels down mentions Stripe.
+SKIP_FILES = {"package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock",
+              "Cargo.lock", "go.sum", "composer.lock", "Gemfile.lock",
+              "requirements.txt", "agent-spec.yaml"}
+MAX_FILES = 4000
+MAX_BYTES = 400_000
+
+
+def scan_codebase(root: Path) -> dict:
+    """Return {signal_key: (why, example_path)} for whatever is detectable."""
+    hits: dict = {}
+    seen = 0
+    for path in root.rglob("*"):
+        if seen >= MAX_FILES:
+            break
+        if not path.is_file() or path.suffix.lower() not in SCAN_EXTS:
+            continue
+        if any(part in SKIP_DIRS for part in path.parts):
+            continue
+        if path.name in SKIP_FILES:
+            continue
+        try:
+            if path.stat().st_size > MAX_BYTES:
+                continue
+            text = path.read_text(errors="ignore").lower()
+        except OSError:
+            continue
+        seen += 1
+        for key, (needles, why) in SIGNALS.items():
+            if key in hits:
+                continue
+            for n in needles:
+                if n in text:
+                    hits[key] = (why, str(path.relative_to(root)))
+                    break
+    return hits
+
+
+def render_scan(root: Path) -> int:
+    hits = scan_codebase(root)
+    print(f"agent-preflight :: scan of {root}")
+    print("  (lockfiles, vendored code, backups and fixtures are skipped)")
+    print()
+    if not hits:
+        print("  No signals detected. That is not the same as nothing being there —")
+        print("  scanning matches text patterns, not behaviour. Fill the spec by hand.")
+        return 0
+
+    print(f"  {len(hits)} signal(s) detected. Each is a prompt to verify, not a finding:")
+    print()
+    for key, (why, where) in sorted(hits.items()):
+        print(f"  {key}")
+        print(f"      {why}")
+        print(f"      seen in: {where}")
+    print()
+    print("  Suggested starting values (verify every one before trusting them):")
+    print()
+    for key in sorted(hits):
+        section, field = key.split(".", 1)
+        print(f"    {section}:")
+        print(f"      {field}: true")
+    print()
+    print("  Scanning cannot detect whether a tool is idempotent, whether an")
+    print("  approval gate exists, or whether anyone is alerted when a run stops.")
+    print("  Those still have to be answered honestly.")
+    return 0
+
+
 # --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
@@ -651,6 +766,11 @@ def explain(check_id: str | None) -> int:
 
 
 def main(argv: list[str]) -> int:
+    if "--scan" in argv:
+        i = argv.index("--scan")
+        target = argv[i + 1] if len(argv) > i + 1 else "."
+        return render_scan(Path(target))
+
     args = [a for a in argv if not a.startswith("--")]
     as_json = "--json" in argv
     strict = "--strict" in argv
