@@ -1,3 +1,5 @@
+![agent-preflight](assets/banner.svg)
+
 # agent-preflight
 
 **Deterministic pre-deployment checks for AI agent systems.**
