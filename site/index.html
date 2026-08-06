@@ -186,21 +186,27 @@ VERDICT: BLOCKED — do not deploy until the above are resolved.</code></pre>
 <section>
   <div class="wrap">
     <p class="eyebrow">Self-check</p>
-    <h2>We ran it on ourselves</h2>
+    <h2>We ran it on ourselves — and keep running it</h2>
     <div class="card">
       <p>
         Arthur is an autonomous agent that researches opportunities, builds
-        products and sells them. We pointed preflight at Arthur and it
-        returned <strong>BLOCKED, with 10 findings</strong>.
+        products and sells them, including this one. The first time we
+        pointed preflight at Arthur it came back <strong>BLOCKED</strong>.
+        One finding was <code>ops.liveness</code> — no alert for a
+        scheduled run that never happens. We had already lived that exact
+        failure: daily routines correctly declared, correctly registered,
+        that simply never fired for two days. Nothing alerted, because
+        nothing errored. Silence and success looked identical.
       </p>
       <p>
-        One was <code>ops.liveness</code> — no alert for a scheduled run that
-        never happens. We had already lived that failure: daily routines
-        correctly declared, correctly registered, that simply never fired for
-        two days. Nothing alerted, because nothing errored. Silence and
-        success looked identical.
+        We fixed what it found and ran it again. Most recently that surfaced
+        a second, almost identical bug in a different corner of the same
+        system: a daily health check that logged failures but never alerted
+        on them — the same silent-failure shape, caught by using our own
+        tool on our own code instead of assuming the first fix generalised.
+        That one's fixed now too, verified live, not just patched and hoped.
       </p>
-      <p class="muted">Most agent outages are not crashes. They are things that quietly stopped happening.</p>
+      <p class="muted">Most agent outages are not crashes. They are things that quietly stopped happening — and it takes actually re-running the check to know you caught them all.</p>
     </div>
   </div>
 </section>
@@ -210,29 +216,32 @@ VERDICT: BLOCKED — do not deploy until the above are resolved.</code></pre>
     <p class="eyebrow">Paid option</p>
     <h2>The audit</h2>
     <p class="section-lede">
-      The tool is self-serve and free. If you would rather have the
-      assessment done and written up — an artefact you can hand to whoever
-      owns the sign-off — that is this.
+      The tool is self-serve and free. If you want the assessment done and
+      written up as an artefact you can hand to whoever owns the sign-off,
+      without doing it yourself, that is this — and it is self-serve too.
+      Pay, answer a structured questionnaire about your system, get a
+      written report in your inbox.
     </p>
     <div class="card">
       <p class="price">£2,500</p>
-      <p class="muted">Fixed fee, one agent system, 10 working days.</p>
+      <p class="muted">One agent system. Report generated automatically after intake.</p>
       <ul>
-        <li>A structured interview with your build team to specify the system</li>
-        <li>Full preflight across tenancy, credentials, injection gating, tool contracts, agent bounds, evaluation, operations, liveness, data handling, resilience, billing and rollback</li>
-        <li>A written report: every blocking issue and warning, each with a concrete fix</li>
-        <li>A machine-readable spec you own and can re-run in CI forever</li>
-        <li>A 60-minute walkthrough with your team, and your reviewer if useful</li>
+        <li>A structured questionnaire covering tenancy, credentials, injection gating, tool contracts, agent bounds, evaluation, operations, liveness, data handling, resilience, billing and rollback (10-15 minutes)</li>
+        <li>The same deterministic checker as the free tool, run against your answers</li>
+        <li>A written report emailed automatically, usually within minutes of submitting: every blocking issue and warning, explained, with a concrete fix</li>
+        <li>Reply to the report email any time with questions or corrections</li>
       </ul>
       <p style="margin-top:20px"><a class="btn" href="https://buy.stripe.com/6oUbJ3dfo1H4aL37hYgIo02">Book the audit — £2,500</a></p>
-      <p class="muted" style="margin-top:10px">50% on booking, 50% on delivery.</p>
+      <p class="muted" style="margin-top:10px">Paid upfront. You get an intake link by email straight after checkout.</p>
     </div>
     <p class="muted" style="margin-top:22px; max-width: 620px;">
-      This assesses declared design, not running behaviour. It is evidence for
-      a human reviewer, not a certification or a penetration test. Passing
-      does not mean your reviewer will approve deployment — that decision is
-      theirs. The underlying checks are open source either way; paying buys
-      the interview, analysis and written artefact, not access to the tool.
+      This assesses declared design, not running behaviour, based on how you
+      describe your system in the questionnaire — it is evidence for a human
+      reviewer, not a certification or a penetration test. Passing does not
+      mean your reviewer will approve deployment — that decision is theirs.
+      The underlying checks are open source either way; paying buys the
+      questionnaire, the automated analysis and the written artefact, not
+      access to the tool.
     </p>
   </div>
 </section>

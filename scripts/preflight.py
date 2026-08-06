@@ -142,19 +142,31 @@ def check_tools(spec: dict, r: Report) -> set[str]:
 
 
 def check_agents(spec: dict, tool_names: set[str], r: Report) -> None:
-    """An agent without a step limit and a cost budget is an unbounded liability."""
+    """An agent without a step limit and a cost budget is an unbounded liability —
+    but that only applies to something that actually iterates. A fixed-length
+    sequence (call tool A, then B, then C, return) has no loop to bound, and
+    step_limit/stop_conditions don't mean anything for it. Added after
+    dogfooding this exact confusion on Arthur's own daily routines: they are
+    bounded pipelines, not agentic loops, and the checker used to have no way
+    to say so — every fixed sequence in the codebase got the same three
+    findings as a genuinely unbounded while-loop. cost_budget still applies
+    either way: even a fixed sequence can call paid tools and spend money."""
     for a in spec.get("agents") or []:
         n = a.get("name") or "(unnamed)"
+        iterates = a.get("iterates")
+        is_bounded_sequence = iterates is False
 
-        if a.get("step_limit") in (None, ""):
-            r.add(BLOCK, "agent.step_limit", f"Agent {n}: no step_limit.",
-                  "Set a maximum number of steps. Without it a loop runs until something else breaks.")
+        if not is_bounded_sequence:
+            if a.get("step_limit") in (None, ""):
+                r.add(BLOCK, "agent.step_limit", f"Agent {n}: no step_limit.",
+                      "Set a maximum number of steps. Without it a loop runs until something else breaks.")
+            if not (a.get("stop_conditions") or []):
+                r.add(BLOCK, "agent.stop", f"Agent {n}: no stop_conditions.",
+                      "Define what 'done' means, and what forces an early exit.")
+
         if blank(a.get("cost_budget")):
             r.add(BLOCK, "agent.cost_budget", f"Agent {n}: no cost_budget.",
                   "Set a per-run spend ceiling.")
-        if not (a.get("stop_conditions") or []):
-            r.add(BLOCK, "agent.stop", f"Agent {n}: no stop_conditions.",
-                  "Define what 'done' means, and what forces an early exit.")
         if blank(a.get("context_boundary")):
             r.add(WARN, "agent.context", f"Agent {n}: no context_boundary declared.",
                   "State what this agent is allowed to see.")
@@ -317,7 +329,7 @@ KNOWN_KEYS = {
 
 AGENT_KEYS = {"name", "purpose", "context_boundary", "model_policy", "permitted_tools",
               "output_schema", "step_limit", "cost_budget", "latency_budget",
-              "stop_conditions", "escalation_conditions"}
+              "stop_conditions", "escalation_conditions", "iterates"}
 
 TOOL_KEYS = {"name", "input_schema", "output_schema", "auth_scope", "tenant_context",
              "side_effect", "timeout_s", "retry_policy", "idempotency",
@@ -628,7 +640,8 @@ RATIONALE = {
         "conditions the fallback is a confident wrong answer instead of a human.",
     "agent.stop":
         "Without stop conditions, 'done' is whatever the model decides. Define "
-        "completion and what forces an early exit.",
+        "completion and what forces an early exit. Does not apply if iterates: false "
+        "— a fixed sequence has no loop to stop.",
     "agent.unknown_tool":
         "A tool with no declared contract has unknown side effects, unknown scope and "
         "unknown approval status. You cannot review what is not written down.",
@@ -715,9 +728,13 @@ RATIONALE = {
         "that cannot be undone. Irreversible actions need a human in the path.",
     "agent.step_limit":
         "An agent without a step limit is an unbounded loop. It stops when something else breaks, "
-        "usually a bill or a rate limit.",
+        "usually a bill or a rate limit. Does not apply if iterates: false — a fixed, bounded "
+        "sequence (call A, then B, then C, return) has no loop for a step limit to bound. Say so "
+        "explicitly rather than leaving the checker to assume every agent entry loops.",
     "agent.cost_budget":
-        "Spend is the failure mode nobody instruments until the invoice arrives.",
+        "Spend is the failure mode nobody instruments until the invoice arrives. Applies even to "
+        "a fixed sequence (iterates: false) — a non-looping agent can still call a paid tool "
+        "or model and spend money on every single run.",
     "eval.adversarial":
         "A suite with no failing-by-design cases proves nothing about robustness. Include "
         "injection, malformed input, and cross-tenant probes.",
