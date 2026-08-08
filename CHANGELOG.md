@@ -6,6 +6,19 @@ All notable changes to this project. Format loosely follows
 ## [Unreleased]
 
 ### Added
+- `agents[].iterates` \u2014 an agent entry can now declare `iterates: false`
+  for a fixed, bounded sequence (call A, then B, then C, return). Without it,
+  every agent got the same step_limit/stop_conditions findings as a genuine
+  unbounded loop, even a pipeline with no loop to bound. cost_budget still
+  applies either way. Found by running the checker against our own daily
+  routines and seeing findings that didn\u2019t map to anything real.
+- `billing.replay` \u2014 flags a verified webhook signature with no check
+  that the timestamp is recent. A captured valid signature can otherwise be
+  replayed indefinitely and still pass. Found by red-teaming our own Stripe
+  webhook: the timestamp was parsed out of the header and never actually
+  checked against current time.
+
+### Added
 - `schema.unknown_key` — unrecognised keys are now reported with a
   did-you-mean suggestion. Found by typo-ing `tenant_id_propogated` and
   watching the checker silently ignore it, then block on the field as though

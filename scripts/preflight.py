@@ -245,6 +245,12 @@ def check_billing(spec: dict, r: Report) -> None:
     if b.get("webhook_signature_verified") is not True:
         r.add(BLOCK, "billing.signature", "Payments enabled but webhook signatures are not verified.",
               "Verify signatures against the raw request body.")
+    if b.get("webhook_signature_verified") is True and b.get("webhook_replay_protected") is not True:
+        r.add(BLOCK, "billing.replay",
+              "Webhook signature is verified but the timestamp is not checked against current time.",
+              "A captured valid signature (leaked logs, a compromised proxy) can otherwise be replayed "
+              "indefinitely and still pass. Reject anything outside a short tolerance window (Stripe "
+              "recommends 300s).")
     if b.get("event_ids_stored_for_idempotency") is not True:
         r.add(BLOCK, "billing.idempotency", "Payment event IDs are not stored for idempotency.",
               "Payment webhooks are at-least-once. Store event IDs and ignore repeats.")
@@ -318,7 +324,7 @@ KNOWN_KEYS = {
     "evaluation": {"cases", "adversarial_cases", "run_on_real_inputs"},
     "schedule": {"scheduled", "liveness_alert"},
     "observability": {"logging", "tracing", "cost_monitoring", "alerting"},
-    "billing": {"uses_payments", "webhook_signature_verified",
+    "billing": {"uses_payments", "webhook_signature_verified", "webhook_replay_protected",
                 "event_ids_stored_for_idempotency", "fulfilment_verified_end_to_end"},
     "rollback": {"target", "verified"},
     "exposure": {"publicly_reachable"},
@@ -756,6 +762,9 @@ RATIONALE = {
     "resilience.rate_limit":
         "A public agent with no rate limit is a metered API someone else controls. The first "
         "abusive caller drains the model budget.",
+    "billing.replay":
+        "A signature proves the payload came from the real sender at some point \u2014 not that it is "
+        "being sent now. Without a timestamp check, a captured valid webhook can be replayed forever.",
     "billing.fulfilment":
         "A charge with a flipped status flag and no delivery is the worst outcome available to a "
         "business. Prove delivery with a real run.",
