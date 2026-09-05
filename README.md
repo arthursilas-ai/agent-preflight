@@ -7,6 +7,7 @@
 [![ci](https://github.com/arthursilas-ai/agent-preflight/actions/workflows/ci.yml/badge.svg)](https://github.com/arthursilas-ai/agent-preflight/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
+[![pypi](https://img.shields.io/pypi/v/solystopia-agent-preflight.svg)](https://pypi.org/project/solystopia-agent-preflight/)
 
 Your agent works in the demo. Will it pass review?
 
@@ -18,10 +19,10 @@ As an agent skill (works in Claude Code, Cursor, Copilot, Codex, Gemini, Zed and
 npx skills add arthursilas-ai/agent-preflight
 ```
 
-As a CLI, straight from GitHub — no PyPI account needed, no repo to clone:
+From PyPI:
 
 ```bash
-pip install git+https://github.com/arthursilas-ai/agent-preflight.git
+pip install solystopia-agent-preflight
 agent-preflight --init                 # write a starter spec
 agent-preflight agent-spec.yaml        # check it
 agent-preflight --explain ops.liveness # why a check exists
