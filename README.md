@@ -18,6 +18,15 @@ As an agent skill (works in Claude Code, Cursor, Copilot, Codex, Gemini, Zed and
 npx skills add arthursilas-ai/agent-preflight
 ```
 
+As a CLI, straight from GitHub — no PyPI account needed, no repo to clone:
+
+```bash
+pip install git+https://github.com/arthursilas-ai/agent-preflight.git
+agent-preflight --init                 # write a starter spec
+agent-preflight agent-spec.yaml        # check it
+agent-preflight --explain ops.liveness # why a check exists
+```
+
 Or standalone — one file, no install, no account:
 
 ```bash

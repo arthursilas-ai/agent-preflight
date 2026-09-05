@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solystopia-agent-preflight"
+version = "0.1.0"
+description = "Deterministic pre-deployment checks for AI agent systems. Blocks unsafe designs before they ship."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["pyyaml>=6.0"]
+license = { text = "MIT" }
+authors = [{ name = "Arthur Silas", email = "arthur-silas@agentmail.to" }]
+keywords = ["ai-agents", "ai-safety", "ci-cd", "deployment", "preflight"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Quality Assurance",
+]
+
+[project.urls]
+Homepage = "https://github.com/arthursilas-ai/agent-preflight"
+Repository = "https://github.com/arthursilas-ai/agent-preflight"
+Changelog = "https://github.com/arthursilas-ai/agent-preflight/blob/main/CHANGELOG.md"
+
+# The distribution name is prefixed solystopia- because "agent-preflight" is
+# already taken on PyPI by an unrelated project. The installed command stays
+# short — `agent-preflight` — since command names don't need to be globally
+# unique the way distribution names do.
+[project.scripts]
+agent-preflight = "preflight:cli"
+
+[tool.setuptools]
+py-modules = ["preflight"]
+
+[tool.setuptools.package-dir]
+"" = "scripts"
