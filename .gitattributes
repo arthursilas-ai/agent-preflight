@@ -1,0 +1,4 @@
+# The core tool is Python. site/ is a companion marketing/landing page
+# (Next.js) bundled in the same repo for convenience — it shouldn't count
+# toward the repo's reported primary language on GitHub.
+site/** linguist-documentation
