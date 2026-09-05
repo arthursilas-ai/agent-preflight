@@ -20,9 +20,9 @@ export default function Home() {
           </h2>
           <div className="mt-8 rounded-2xl border border-line bg-cardsurface p-6 sm:p-8">
             <p className="text-base leading-relaxed text-dim">
-              Arthur is an autonomous agent that researches opportunities, builds
-              products and sells them, including this one. The first time we
-              pointed preflight at Arthur it came back <strong className="text-paper">BLOCKED</strong>.
+              Aerthor is an autonomous agent that builds and releases open-source
+              tools as part of the Solystopia project. The first time we pointed
+              preflight at the system it came back <strong className="text-paper">BLOCKED</strong>.
               One finding was <code className="rounded bg-white/10 px-1.5 py-0.5 text-sm text-paper">ops.liveness</code> —
               no alert for a scheduled run that never happens. We had already
               lived that exact failure: daily routines correctly declared,
@@ -34,7 +34,7 @@ export default function Home() {
               We fixed what it found and ran it again. Most recently that
               surfaced a second, almost identical bug in a different corner of
               the same system: a daily health check that logged failures but
-              never alerted on them — the same silent-failure shape, caught by
+              never alerted on them &mdash; the same silent-failure shape, caught by
               using our own tool on our own code instead of assuming the first
               fix generalised. That one&rsquo;s fixed now too, verified live, not
               just patched and hoped.
@@ -48,59 +48,33 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="audit" className="w-full bg-ink px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+      <section className="w-full bg-ink px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <div className="mx-auto w-full max-w-3xl">
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-signal">Paid option</p>
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-signal">Part of Solystopia</p>
           <h2 className="mt-4 text-3xl font-medium leading-[1.15] tracking-tight text-paper sm:text-4xl">
-            The audit
+            One tool in an open ecosystem
           </h2>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-dim">
-            The tool is self-serve and free. If you want the assessment done and
-            written up as an artefact you can hand to whoever owns the sign-off,
-            without doing it yourself, that is this — and it is self-serve too.
-            Pay, answer a structured questionnaire about your system, get a
-            written report in your inbox.
+            agent-preflight is one of several open-source tools Aerthor builds and
+            releases under the Solystopia project — a movement about bringing AI
+            capability to individuals, households and neighbourhoods, not just to
+            companies. Everything is MIT licensed and designed to run on your own
+            hardware.
           </p>
-
-          <div className="mt-8 rounded-2xl border border-line bg-cardsurface p-6 sm:p-8">
-            <p className="text-4xl font-semibold tracking-tight text-paper">£2,500</p>
-            <p className="mt-1 text-sm text-dim">One agent system. Report generated automatically after intake.</p>
-            <ul className="mt-6 space-y-3 text-sm text-dim">
-              <li className="flex gap-2">
-                <span className="text-signal">·</span>
-                A structured questionnaire covering tenancy, credentials, injection gating, tool contracts, agent bounds, evaluation, operations, liveness, data handling, resilience, billing and rollback (10–15 minutes)
-              </li>
-              <li className="flex gap-2">
-                <span className="text-signal">·</span>
-                The same deterministic checker as the free tool, run against your answers
-              </li>
-              <li className="flex gap-2">
-                <span className="text-signal">·</span>
-                A written report emailed automatically, usually within minutes of submitting: every blocking issue and warning, explained, with a concrete fix
-              </li>
-              <li className="flex gap-2">
-                <span className="text-signal">·</span>
-                Reply to the report email any time with questions or corrections
-              </li>
-            </ul>
+          <div className="mt-8 flex flex-wrap gap-4">
             <a
-              href="https://buy.stripe.com/6oUbJ3dfo1H4aL37hYgIo02"
-              className="mt-8 inline-flex items-center justify-center rounded-full bg-signal px-8 py-3.5 text-base font-medium text-ink transition-colors hover:brightness-110"
+              href="https://arthur-sandbox.vercel.app"
+              className="inline-flex items-center justify-center rounded-full border border-line bg-cardsurface px-6 py-3 text-sm font-medium text-paper transition-colors hover:border-dim"
             >
-              Book the audit — £2,500
+              More tools &rarr;
             </a>
-            <p className="mt-3 text-xs text-dim">Paid upfront. You get an intake link by email straight after checkout.</p>
+            <a
+              href="https://x.com/solystopia"
+              className="inline-flex items-center justify-center rounded-full border border-line bg-cardsurface px-6 py-3 text-sm font-medium text-paper transition-colors hover:border-dim"
+            >
+              @solystopia on X &rarr;
+            </a>
           </div>
-
-          <p className="mt-6 max-w-2xl text-sm leading-relaxed text-dim">
-            This assesses declared design, not running behaviour, based on how
-            you describe your system in the questionnaire — it is evidence for
-            a human reviewer, not a certification or a penetration test.
-            Passing does not mean your reviewer will approve deployment — that
-            decision is theirs. The underlying checks are open source either
-            way; paying buys the questionnaire, the automated analysis and the
-            written artefact, not access to the tool.
-          </p>
         </div>
       </section>
 

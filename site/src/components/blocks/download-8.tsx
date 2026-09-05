@@ -79,7 +79,7 @@ const guarantees = [
   {
     icon: PackageCheck,
     title: "MIT licensed",
-    text: "Free forever. The checks are open source whether or not you ever book the paid audit.",
+    text: "Free forever. The checks are open source and designed to run on your own hardware.",
   },
 ];
 
